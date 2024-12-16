@@ -1,10 +1,7 @@
 #![allow(unused_unsafe)]
 use crate::{syscall_hint_len, syscall_hint_read, syscall_write};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{
-    alloc::Layout,
-    io::{Result, Write},
-};
+use std::io::{Result, Write};
 
 /// The file descriptor for public values.
 pub const FD_PUBLIC_VALUES: u32 = 3;
@@ -41,6 +38,17 @@ impl Write for SyscallWriter {
     }
 }
 
+// Memory addresses must be lower than BabyBear prime.
+pub const MAX_MEMORY: usize = 0x78000000;
+
+/// Size of reserved region for input values at the top of the heap.
+pub const RESERVED_REGION_SIZE: usize = 1024 * 1024 * 512;
+
+/// Pointer to reserved region for input values.
+pub const RESERVED_INPUT_START: usize = MAX_MEMORY - RESERVED_REGION_SIZE;
+
+static mut RESERVED_INPUT_PTR: usize = RESERVED_INPUT_START;
+
 /// Read a buffer from the input stream.
 ///
 /// ### Examples
@@ -53,21 +61,26 @@ pub fn read_vec() -> Vec<u8> {
     let capacity = (len + 3) / 4 * 4;
 
     // Allocate a buffer of the required length that is 4 byte aligned
-    let layout = Layout::from_size_align(capacity, 4).expect("vec is too large");
-    let ptr = unsafe { std::alloc::alloc(layout) };
+    // let layout = Layout::from_size_align(capacity, 4).expect("vec is too large");
+    // let ptr = unsafe { std::alloc::alloc(layout) };
+    let ptr = unsafe { RESERVED_INPUT_PTR };
+    if ptr + capacity > MAX_MEMORY {
+        panic!("Input region overflowed.")
+    }
+    unsafe { RESERVED_INPUT_PTR += capacity };
 
     // SAFETY:
     // 1. `ptr` was allocated using alloc
-    // 2. We assuume that the VM global allocator doesn't dealloc
+    // 2. We assume that the VM global allocator doesn't dealloc. TODO: We CAN't ASSUME THIS.
     // 3/6. Size is correct from above
     // 4/5. Length is 0
     // 7. Layout::from_size_align already checks this
-    let mut vec = unsafe { Vec::from_raw_parts(ptr, 0, capacity) };
+    let mut vec = unsafe { Vec::from_raw_parts(ptr as *mut u8, 0, capacity) };
 
     // Read the vec into uninitialized memory. The syscall assumes the memory is uninitialized,
     // which should be true because the allocator does not dealloc, so a new alloc should be fresh.
     unsafe {
-        syscall_hint_read(ptr, len);
+        syscall_hint_read(ptr as *mut u8, len);
         vec.set_len(len);
     }
     vec

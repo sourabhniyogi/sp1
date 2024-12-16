@@ -1,6 +1,8 @@
 extern crate alloc;
 
-pub mod heap;
+#[cfg(target_os = "zkvm")]
+pub mod allocators;
+
 pub mod syscalls;
 
 #[cfg(feature = "lib")]
@@ -41,6 +43,9 @@ mod zkvm {
     #[no_mangle]
     unsafe extern "C" fn __start() {
         {
+            #[cfg(feature = "embedded")]
+            crate::allocators::embedded::init();
+
             PUBLIC_VALUES_HASHER = Some(Sha256::new());
             #[cfg(feature = "verify")]
             {
@@ -92,11 +97,6 @@ mod zkvm {
 macro_rules! entrypoint {
     ($path:path) => {
         const ZKVM_ENTRY: fn() = $path;
-
-        use $crate::heap::SimpleAlloc;
-
-        #[global_allocator]
-        static HEAP: SimpleAlloc = SimpleAlloc;
 
         mod zkvm_generated_main {
 

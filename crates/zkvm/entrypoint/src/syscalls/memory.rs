@@ -13,8 +13,9 @@
 // limitations under the License.
 
 // Memory addresses must be lower than BabyBear prime.
-const MAX_MEMORY: usize = 0x78000000;
+pub const MAX_MEMORY: usize = 0x78000000;
 
+// Only called by the bump allocator. Max size is 0x78000000.
 #[allow(clippy::missing_safety_doc)]
 #[no_mangle]
 pub unsafe extern "C" fn sys_alloc_aligned(bytes: usize, align: usize) -> *mut u8 {
