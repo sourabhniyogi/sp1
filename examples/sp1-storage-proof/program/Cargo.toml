@@ -1,0 +1,10 @@
+[package]
+version = "0.1.0"
+name = "storage-proof-program"
+edition = "2021"
+
+[dependencies]
+alloy = { workspace = true }
+serde = { workspace = true }
+sp1-zkvm = "3.0.0"
+storage-proof-lib = { path = "../lib" }

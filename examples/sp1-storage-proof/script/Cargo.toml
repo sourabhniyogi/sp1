@@ -1,0 +1,24 @@
+[package]
+version = "0.1.0"
+name = "storage-proof-script"
+edition = "2021"
+default-run = "storage-proof"
+
+[[bin]]
+name = "storage-proof"
+path = "src/bin/main.rs"
+
+[dependencies]
+alloy = { workspace = true, features = ["rpc-types", "consensus", "network", "providers", "rlp", "transports"] }
+clap = { version = "4.0", features = ["derive", "env"] }
+dotenv = { workspace = true }
+hex = "0.4.3"
+reqwest = "0.12.5"
+serde = { workspace = true }
+sp1-sdk = { version = "3.0.0", features = ["native-gnark"] }
+storage-proof-lib = { path = "../lib" }
+tokio = { workspace = true }
+
+
+[build-dependencies]
+sp1-helper = "3.0.0"
