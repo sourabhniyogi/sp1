@@ -15,7 +15,7 @@ dotenv = { workspace = true }
 hex = "0.4.3"
 reqwest = "0.12.5"
 serde = { workspace = true }
-sp1-sdk = { version = "3.0.0", features = ["native-gnark"] }
+sp1-sdk = { version = "4.0.0", features = ["native-gnark"] }
 storage-proof-lib = { path = "../lib" }
 tokio = { workspace = true }
 

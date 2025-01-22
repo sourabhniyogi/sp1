@@ -34,7 +34,6 @@ pub fn main() {
         )
     );
 
-    // Validate storage slot value
     let slot_hash: B256 = keccak256(slot);
     assert!(
         verify_proof(
@@ -44,4 +43,5 @@ pub fn main() {
             &encode(value),
         )
     );
+
 }
